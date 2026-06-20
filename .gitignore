@@ -1,0 +1,12 @@
+/download/
+/inference_outputs/
+/lightning_logs/
+/.vscode/
+/tmp/
+/outputs/
+
+# Python package metadata
+*.egg-info/
+
+# Python cache
+__pycache__/

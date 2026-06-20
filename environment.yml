@@ -1,0 +1,14 @@
+name: chamaileon
+channels:
+  - conda-forge
+  - bioconda
+  - salilab
+dependencies:
+  - python=3.10.12
+  - pip=23.3.2
+  - setuptools=69.0.3
+  - wheel=0.42.0
+  - foldseek=10.941cd33
+  - modeller=10.7
+  - mafft=7.526
+  - mdanalysis=2.9.0

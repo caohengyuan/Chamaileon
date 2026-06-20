@@ -1,0 +1,115 @@
+defaults:
+ - base
+ - _self_
+
+data:
+  task: target_binder
+
+  dataset: pdb_target_binder
+
+  loader:
+    num_workers: 0
+    prefetch_factor: 0
+
+  sampler:
+    # Setting for 40GB GPUs
+    # max_batch_size: 64
+    # max_num_res_squared: 400_000
+
+    # Setting for 80GB GPUs
+    max_batch_size: 100
+    max_num_res_squared: 250_000
+
+model:
+  noise_target: False
+  use_hotspot: True
+  aatype_pred: True
+  aatype_pred_num_tokens: 21
+  transformer_dropout: 0.2
+  node_features:
+    use_mlp: True
+    embed_aatype: True
+    noise_target: ${model.noise_target}
+    use_hotspot: ${model.use_hotspot}
+
+interpolant:
+  codesign_separate_t: True
+  codesign_forward_fold_prop: 0.1
+  codesign_inverse_fold_prop: 0.1
+  noise_target: ${model.noise_target}
+  rots:
+    corrupt: True
+  trans:
+    corrupt: True
+  aatypes:
+    corrupt: True
+    temp: 0.1
+    do_purity: True
+    noise: 20.0
+    interpolant_type: masking
+
+experiment:
+  debug: False
+  raw_state_dict_reload: ./weights/last.ckpt
+  training:
+    aatypes_loss_weight: 1.0
+    translation_loss_weight: 2.0
+    rotation_loss_weights: 1.0
+  num_devices: 8
+  warm_start: null
+  logger: tensorboard
+  tensorboard:
+    save_dir: ./tb_logs
+    name: target_binder
+  wandb:
+    name: target_binder
+  trainer:
+    precision: null
+    max_epochs: 2000
+    check_val_every_n_epoch: 1
+    val_check_interval: null
+    accumulate_grad_batches: 64
+    strategy: "fsdp"
+  checkpointer:
+    dirpath: ckpt/target_binder/${now:%Y-%m-%d}_${now:%H-%M-%S}
+    save_top_k: -1
+    every_n_epochs: 1
+    every_n_train_steps: null
+    save_on_train_epoch_end: True
+    monitor: null
+  optimizer:
+    lr: 0.0001
+  
+pdb_target_binder_dataset:
+  seed: ${shared.seed}
+  json_path: metadata/metadata_filtered_20250106.json
+  cluster_path: ./metadata/pdb.clusters
+  max_cache_size: ${shared.max_cache_size}
+  cache_num_res: 1024
+  inpainting_percent: 1.0
+  processed_pdb_path_prefix: ''
+
+  add_plddt_mask: False
+  max_eval_length: 1024 # ${shared.max_eval_length}
+
+  chain_idx_offset: 100
+  res_idx_offset: 1000
+
+  # Eval parameters
+  # samples_per_eval_length: ${shared.samples_per_eval_length}
+  # num_eval_lengths: ${shared.num_eval_lengths}
+  samples_per_eval_length: 1
+  num_eval_lengths : 8
+
+  noise_target: ${model.noise_target}
+  use_hotspot: ${model.use_hotspot}
+
+  # Filtering
+  filter: # TODO: change?
+    which_chains: ['target_1', 'target_2', 'binder_1', 'binder_2']
+    max_num_res: 384
+    min_num_res: 60
+    max_coil_percent: 0.5
+    rog_quantile: 0.96
+    oligomeric: ['monomeric']
+    num_chains: [1]

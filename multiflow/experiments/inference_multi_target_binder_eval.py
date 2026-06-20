@@ -1,0 +1,139 @@
+import os
+import time
+import numpy as np
+import hydra
+import torch
+import pytorch_lightning as pl
+from pytorch_lightning import Trainer
+from omegaconf import DictConfig, OmegaConf
+from multiflow.experiments import utils as eu
+from multiflow.models.target_binder_flow_module import TargetBinderFlowModule
+import torch.distributed as dist
+from multiflow.data.multi_target_binder_datasets import PDBMultiTargetBinderDataset
+from multiflow.data.collate import keep_list_collate
+
+
+torch.set_float32_matmul_precision('high')
+log = eu.get_pylogger(__name__)
+
+
+class EvalRunner:
+
+    def __init__(self, cfg: DictConfig):
+        """Initialize sampler.
+
+        Args:
+            cfg: inference config.
+        """
+
+        # Read in checkpoint.
+        if cfg.inference.task == 'multi_target_binder_eval':
+            ckpt_path = cfg.inference.multi_target_binder_eval_ckpt_path
+        else:
+            raise ValueError(f'Unknown task {cfg.inference.task}')
+        ckpt_dir = os.path.dirname(ckpt_path)
+        ckpt_cfg = OmegaConf.load(os.path.join(ckpt_dir, 'config.yaml'))
+        self._original_cfg = cfg.copy()
+
+        # Set-up config.
+        OmegaConf.set_struct(cfg, False)
+        OmegaConf.set_struct(ckpt_cfg, False)
+        cfg = OmegaConf.merge(cfg, ckpt_cfg)
+        cfg.experiment.checkpointer.dirpath = './'
+        self._cfg = cfg
+        self._exp_cfg = cfg.experiment
+        self._infer_cfg = cfg.inference
+        self._samples_cfg = self._infer_cfg.samples
+        self._rng = np.random.default_rng(self._infer_cfg.seed)
+
+        # Set-up output directory only on rank 0
+        local_rank = os.environ.get('LOCAL_RANK', 0)
+        if local_rank == 0:
+            inference_dir = self.setup_inference_dir(ckpt_path)
+            self._exp_cfg.inference_dir = inference_dir
+            config_path = os.path.join(inference_dir, 'config.yaml')
+            with open(config_path, 'w') as f:
+                OmegaConf.save(config=self._cfg, f=f)
+            log.info(f'Saving inference config to {config_path}')
+
+        # Read checkpoint and initialize module.
+        self._cfg.interpolant = self._infer_cfg.interpolant
+        self._flow_module = TargetBinderFlowModule.load_from_checkpoint(
+            checkpoint_path=ckpt_path,
+            cfg=self._cfg,
+            dataset_cfg=eu.get_dataset_cfg(cfg),
+            folding_cfg=self._infer_cfg.folding,
+        )
+        log.info(pl.utilities.model_summary.ModelSummary(self._flow_module))
+        self._flow_module.eval()
+        self._flow_module._infer_cfg = self._infer_cfg
+        self._flow_module._samples_cfg = self._samples_cfg
+
+    @property
+    def inference_dir(self):
+        return self._flow_module.inference_dir
+
+    def setup_inference_dir(self, ckpt_path):
+        self._ckpt_name = '/'.join(ckpt_path.replace('.ckpt', '').split('/')[-3:])
+        output_dir = os.path.join(
+            self._infer_cfg.predict_dir,
+            self._ckpt_name,
+            self._infer_cfg.task,
+            self._infer_cfg.inference_subdir,
+        )
+        os.makedirs(output_dir, exist_ok=True)
+        log.info(f'Saving results to {output_dir}')
+        return output_dir
+
+    def run_sampling(self):
+        # devices = GPUtil.getAvailable(
+        #     order='memory', limit = 8)[:self._infer_cfg.num_gpus]
+        visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+        if visible:
+            vis_list = [x for x in visible.split(",") if x != ""]
+            devices = list(range(min(len(vis_list), self._infer_cfg.num_gpus)))
+        else:
+            devices = eu.get_available_device(self._infer_cfg.num_gpus)
+        log.info(f"Using devices: {devices}")
+        log.info(f'Evaluating {self._infer_cfg.task}')
+        if self._infer_cfg.task == 'multi_target_binder_eval':
+            eval_dataset, _ = eu.dataset_creation(
+                PDBMultiTargetBinderDataset, self._infer_cfg.pdb_multi_target_binder_test_dataset, self._infer_cfg.task
+            )
+        else:
+            raise ValueError(f'Unknown task {self._infer_cfg.task}')
+        dataloader = torch.utils.data.DataLoader(
+            eval_dataset, batch_size=1, shuffle=False, drop_last=False, collate_fn=keep_list_collate)
+        trainer = Trainer(
+            accelerator="gpu",
+            strategy="ddp",
+            devices=devices,
+        )
+        trainer.predict(self._flow_module, dataloaders=dataloader)
+
+@hydra.main(version_base=None, config_path="../configs", config_name="inference_multi_target_binder_eval")
+def run(cfg: DictConfig) -> None:
+
+    # Read model checkpoint.
+    log.info(f'Starting inference with {cfg.inference.num_gpus} GPUs')
+    start_time = time.time()
+    sampler = EvalRunner(cfg)
+    sampler.run_sampling()
+    
+    def compute_metrics():
+        if cfg.inference.task == 'multi_target_binder_eval':
+            log.info("Multi-target binder eval metrics are handled separately after inference outputs are generated.")
+        else:
+            raise ValueError(f'Unknown task {cfg.inference.task}')
+
+    if dist.is_initialized():
+        if dist.get_rank() == 0:
+            compute_metrics()
+    else:
+        compute_metrics()
+
+    elapsed_time = time.time() - start_time
+    log.info(f'Finished in {elapsed_time:.2f}s')
+
+if __name__ == '__main__':
+    run()

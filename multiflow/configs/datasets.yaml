@@ -1,0 +1,6 @@
+shared:
+  seed: 123
+  max_cache_size: 100_000
+  samples_per_eval_length: 5
+  num_eval_lengths : 8
+  max_eval_length: 256

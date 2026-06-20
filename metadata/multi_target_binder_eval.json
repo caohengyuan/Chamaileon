@@ -1,0 +1,79 @@
+[
+    {
+        "targets": [
+            {
+                "pdb_name": "5UUK",
+                "model_id": null,
+                "chain_id": "A",
+                "seq_len": 277,
+                "processed_path": "./data/5UUK_0_A_2044.pkl",
+                "modeled_seq_len": 152
+            },
+            {
+                "pdb_name": "5UUM",
+                "model_id": null,
+                "chain_id": "A",
+                "seq_len": 243,
+                "processed_path": "./data/5UUM_0_A_2045.pkl",
+                "modeled_seq_len": 156
+            }
+        ],
+        "binders": [
+            {
+                "pdb_name": "5UUK",
+                "model_id": null,
+                "chain_id": "B",
+                "seq_len": 44,
+                "modeled_seq_len": 22,
+                "processed_path": "./data/5UUK_0_B_2044.pkl"
+            },
+            {
+                "pdb_name": "5UUM",
+                "model_id": null,
+                "chain_id": "C",
+                "seq_len": 35,
+                "modeled_seq_len": 23,
+                "processed_path": "./data/5UUM_0_C_2045.pkl"
+            }
+        ],
+        "structure_diff": 2.26
+    },
+    {
+    "binders": [
+      {
+        "pdb_name": "6ZKE",
+        "model_id": null,
+        "chain_id": "i",
+        "seq_len": 146,
+        "modeled_seq_len": 145,
+        "processed_path": "./data/6ZKE_0_i_643.pkl"
+      },
+      {
+        "pdb_name": "7DGZ",
+        "model_id": null,
+        "chain_id": "U",
+        "seq_len": 132,
+        "modeled_seq_len": 132,
+        "processed_path": "./data/7DGZ_0_U_644.pkl"
+      }
+    ],
+    "targets": [
+      {
+        "pdb_name": "6ZKE",
+        "model_id": null,
+        "chain_id": "9",
+        "seq_len": 179,
+        "modeled_seq_len": 176,
+        "processed_path": "./data/6ZKE_0_9_643.pkl"
+      },
+      {
+        "pdb_name": "7DGZ",
+        "model_id": null,
+        "chain_id": "E",
+        "seq_len": 178,
+        "modeled_seq_len": 176,
+        "processed_path": "./data/7DGZ_0_E_644.pkl"
+      }
+    ]
+  }
+]

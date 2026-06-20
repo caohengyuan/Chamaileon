@@ -1,0 +1,13 @@
+This directory contains code adapted from the Multiflow project:
+
+  https://github.com/jasonkyuyim/multiflow
+
+  Copyright (c) 2024 Andrew Campbell, Jason Yim
+  Licensed under the MIT License
+
+Modifications have been made to support the Chamaileon framework
+for cross-context binder design.
+
+Some files in this directory contain code originally from DeepMind
+Technologies (Apache 2.0) or AlQuraishi Laboratory (Apache 2.0),
+as indicated by the copyright headers in those files.

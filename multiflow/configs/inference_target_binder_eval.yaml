@@ -1,0 +1,126 @@
+# Configuration for inference on SE(3) diffusion experiments.
+defaults:
+  - base
+  - _self_
+
+inference:
+
+  predict_dir: ./inference_outputs/
+  inference_subdir: run_${now:%Y-%m-%d}_${now:%H-%M-%S}
+  task: target_binder_eval
+  seed: 123
+  use_gpu: True
+  num_gpus: 1 # 1
+
+  target_binder_eval_ckpt_path: download/chamaileon.ckpt
+
+  also_fold_pmpnn_seq: True # whether to also fold the generated pmpnn seq for each structure
+  write_sample_trajectories: False # whether to also save the trajectory of the generation process
+
+  interpolant:
+    beam_search: True
+    alphafold2_params_dir: download/AlphaFold2/params
+    beam_search_freq: 50
+    beam_search_split_num: 4
+    noise_scale: 0.1
+
+    min_t: 1e-2
+    provide_kappa: False
+    codesign_separate_t: False
+
+    rots:
+      corrupt: True
+      sample_schedule: exp
+      exp_rate: 10
+
+    trans:
+      corrupt: True
+      pre_align: True
+      train_schedule: linear
+      sample_schedule: linear
+      sample_temp: 1.0
+      potential: null
+      potential_t_scaling: False
+      rog:
+        weight: 20.0
+        cutoff: 5.0
+    aatypes:
+      corrupt: True
+      schedule: linear
+      schedule_exp_rate: -3
+      temp: 0.1
+      noise: 20.0
+      do_purity: True
+      interpolant_type: masking
+    sampling:
+      num_timesteps: 500
+      do_sde: False
+
+    self_condition: True
+
+  # Directory of software, weights, and outputs.  
+  pmpnn_dir: ./ProteinMPNN
+
+  folding:
+    seq_per_sample: 8
+    folding_model: esmf
+    own_device: False
+    pmpnn_path: ./ProteinMPNN/
+    pt_hub_dir: ./.cache/torch/
+    colabfold_path: path/to/colabfold-conda/bin/colabfold_batch # for AF2
+
+  samples:
+
+    # Number of backbone samples per sequence length.
+    samples_per_length: 5
+
+    # Batch size when sampling from the model
+    num_batch: 1
+
+    # Subset of lengths to sample. If null, sample all targets.
+    # length_subset: null
+    length_subset: [10]
+
+    # Minimum sequence length to sample.
+    min_length: 2
+
+    # Maximum sequence length to sample.
+    max_length: 1024 # 256
+
+    # gap between lengths to sample. i.e. this script will sample all lengths
+    # in range(min_length, max_length, length_step)
+    length_step: 1
+
+  pdb_target_binder_eval_dataset:
+    seed: ${shared.seed}
+    num_samples: 1
+    json_path: metadata/target_binder_eval.json
+    cluster_path: ./metadata/pdb.clusters
+    max_cache_size: ${shared.max_cache_size}
+    cache_num_res: 1024 # 0
+    inpainting_percent: 1.0
+
+    add_plddt_mask: False
+    max_eval_length: 1024 # ${shared.max_eval_length}
+
+    chain_idx_offset: 100
+    res_idx_offset: 1000
+
+    # Eval parameters
+    # samples_per_eval_length: ${shared.samples_per_eval_length}
+    # num_eval_lengths: ${shared.num_eval_lengths}
+    samples_per_eval_length: 1
+    num_eval_lengths : 4
+
+    noise_target: ${model.noise_target}
+    use_hotspot: ${model.use_hotspot}
+
+    # Filtering
+    filter:
+      which_chains: ['target_1', 'target_2', 'binder_1', 'binder_2']
+      max_num_res: 384
+      min_num_res: 60
+      max_coil_percent: 0.5
+      rog_quantile: 0.96
+      oligomeric: ['monomeric']
+      num_chains: [1]
