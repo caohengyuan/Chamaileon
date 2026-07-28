@@ -6,6 +6,10 @@ This is the official implementation of Chamaileon. [ICML2026 Spotlight]
 
 by *Hengyuan Cao, Shizhuo Cheng, Mingxuan Liu, Weicheng Huang, Yunhong Lu, Chenxi Cai, Yan Zhang, Min Zhang*
 
+[![arXiv](https://img.shields.io/badge/arXiv-2505.23325-b31b1b.svg)](https://arxiv.org/abs/2607.23518)
+[![HuggingFace](https://img.shields.io/badge/🤗-HF%20Model-yellow)](https://huggingface.co/caohy666/Chamaileon)
+[![GitHub](https://img.shields.io/badge/GitHub-Repo-black)](https://github.com/caohengyuan/Chamaileon)
+
 ## Updates
 
 [2026-06-20] upload codebase.
@@ -69,7 +73,15 @@ bash scripts/inference_multi_target_binder_eval.sh
 
 If you find this work useful, please cite:
 ```bibtex
-
+@misc{cao2026chamaileoncrosscontextbinderdesign,
+      title={Chamaileon: Cross-Context Binder Design with Contextualized Modeling and Mixed Sampling}, 
+      author={Hengyuan Cao and Shizhuo Cheng and Mingxuan Liu and Weicheng Huang and Yunhong Lu and Chenxi Cai and Yan Zhang and Min Zhang},
+      year={2026},
+      eprint={2607.23518},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2607.23518}, 
+}
 ```
 
 ## 📕 Acknowledgements
