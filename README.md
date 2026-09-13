@@ -4,11 +4,13 @@ This is the official implementation of Chamaileon. [ICML2026 Spotlight]
 
 ## Chamaileon: Cross-Context Binder Design with Contextualized Modeling and Mixed Sampling.
 
-by *Hengyuan Cao, Shizhuo Cheng, Mingxuan Liu, Weicheng Huang, Yunhong Lu, Chenxi Cai, Yan Zhang, Min Zhang*
+by *Hengyuan Cao<sup>&#42;</sup>, Shizhuo Cheng<sup>&#42;</sup>, Mingxuan Liu, Weicheng Huang, Yunhong Lu, Chenxi Cai, Yan Zhang, Min Zhang*
 
 [![arXiv](https://img.shields.io/badge/arXiv-2505.23325-b31b1b.svg)](https://arxiv.org/abs/2607.23518)
 [![HuggingFace](https://img.shields.io/badge/🤗-HF%20Model-yellow)](https://huggingface.co/caohy666/Chamaileon)
 [![GitHub](https://img.shields.io/badge/GitHub-Repo-black)](https://github.com/caohengyuan/Chamaileon)
+
+<sup>&#42;</sup> Equal contribution.
 
 ## Updates
 
